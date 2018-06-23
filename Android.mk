@@ -10,5 +10,5 @@ LOCAL_MODULE := logsaver
 LOCAL_CFLAGS += $(logsaver_CFLAGS)
 LOCAL_SHARED_LIBRARIES := libutils liblog
 LOCAL_SRC_FILES := logsaver.cpp
-LOCAL_INIT_RC := init.logsaver.rc
+LOCAL_INIT_RC := logsaver.rc
 include $(BUILD_EXECUTABLE)
