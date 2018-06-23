@@ -1,0 +1,11 @@
+type logsaver, domain;
+type logsaver_exec, exec_type, vendor_file_type, file_type;
+
+typeattribute logsaver coredomain;
+init_daemon_domain(logsaver)
+
+allow logsaver kernel:system syslog_read;
+allow logsaver kmsg_device:chr_file { open read };
+allow logsaver self:capability dac_override;
+allow logsaver bootchart_data_file:dir { add_name write };
+allow logsaver bootchart_data_file:file { create open write };

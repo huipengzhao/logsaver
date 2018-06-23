@@ -1,0 +1,4 @@
+service logsaver /system/bin/logsaver -k /dev/kmsg /data/bootchart/klog
+    class main
+    user root
+    oneshot
