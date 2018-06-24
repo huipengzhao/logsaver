@@ -36,18 +36,36 @@ void LogCfg::showUsage() {
     "    -x suffix" NL
     "        Indicates suffix type. 3 types: index, property and date." NL
     "        Suppose file_out is /data/bootchart/klog." NL
+    NL
     "        Type <index>:" NL
     "            <index> is a file path which contains a number as suffix." NL
+    "            Such as /data/bootchart/k_idx" NL
     "            Logsaver will read it, increase it and save it back." NL
     "            After suffixed, logfile is like /data/bootchart/klog_XYZ" NL
+    NL
     "        Type <property>:" NL
-    "            <property> is a Android property which contains a number." NL
+    "            <property> is a persist property which contains a number." NL
+    "            Such as persist.logsaver.a.idx" NL
     "            Logsaver will getprop it, increase it and setprop it back." NL
     "            After suffixed, logfile is like /data/bootchart/klog_XYZ" NL
+    NL
     "        Type date:" NL
-    "            Use current date and time as suffix." NL
+    "            The suffix is the date and time to create the log file." NL
     "            After suffixed, logfile is like /data/bootchart/klog_YYMMDD-hhmmss" NL
+    NL
     "        Unset means always write to the same file path." NL
+    NL
+    "EXAMPLES:" NL
+    "    logsaver -k -p /dev/kmsg -s 2m -t 600 -x persist.logsaver.k.idx /data/bootchart/klog" NL
+    "        This command saves kernel logs into /data/bootchart/klog_YYMMDD-hhmmss," NL
+    "        where <idx> is from the persist.logsaver.k.idx property." NL
+    "        The output logs are splited into files based on size of 2MB." NL
+    "        And the process will stop after 600 seconds." NL
+    NL
+    "    logsaver -a -p '-s ActivityManager:V Zygote:V' -s 4m -x date /data/bootchart/alog" NL
+    "        This command saves android logs into /data/bootchart/alog_<date>," NL
+    "        Use logcat parameter '-s ActivityManager:V Zygote:V' to filter the logs." NL
+    "        The logsaver will split log files by 4MB, and it will never stop." NL
     NL
     );
 }
