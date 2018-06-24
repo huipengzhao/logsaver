@@ -1,24 +1,66 @@
 #include <stdio.h>
+#include <errno.h>
+#include <getopt.h>
+#include <unistd.h>
 
 #include "LogSaver.h"
 
 #define NL "\n"
+#define LOGOPTS "hakp:s:t:x:o:"
 
-LogCfg::LogCfg() {
+// return < 0 means something is wrong.
+static long get_size(const char *str) {
+    char *end = NULL;
+    long n = strtol(str, &end, 0);
+    if (end == NULL) return -1; // should not happen.
+    if (end == str ) return -1; // no match pattern.
+    int len = strlen(end);
+    if (len == 1) { // support K/k/M/m.
+        switch (*end) {
+        case 'K': case 'k': n *= 1024;
+            break;
+        case 'M': case 'm': n *= 1024*1024;
+            break;
+        default:            n = -1;
+            break;
+        }
+    } else
+    if (len != 0) { // invalid pattern.
+        return -1;
+    }
+    return n;
+}
+
+static long get_timeout(const char *str) {
+    char *end = NULL;
+    long n = strtol(str, &end, 0);
+    if (end == NULL) return -1; // should not happen.
+    if (end == str ) return -1; // no match pattern.
+    if (*end != 0  ) return -1; // not only number.
+    return n;
 }
 
 void LogCfg::showUsage() {
-    printf(
+    printf( NL
     "USAGE:" NL
-    "    logsaver -k [options] file_out" NL
-    "    logsaver -a [options] file_out" NL
+    "    logsaver -h" NL
+    "    logsaver -k [options] -o file_out" NL
+    "    logsaver -a [options] -o file_out" NL
+    NL
+    "    -k and -a are exclusive, the latter override the former." NL
     NL
     "OPTIONS:" NL
+    "    -h" NL
+    "        Show this manual." NL
+    NL
     "    -a" NL
     "        Save Android logs." NL
     NL
     "    -k" NL
     "        Save Kernel logs." NL
+    NL
+    "    -o file_out" NL
+    "        Output file path." NL
     NL
     "    -p parameters" NL
     "        In -a case, it is the same as logcat parameters." NL
@@ -70,14 +112,119 @@ void LogCfg::showUsage() {
     );
 }
 
+LogCfg::LogCfg() {
+    mLogType    = LOGTYPE_INVALID;
+    mParam      = "";
+    mMaxSize    = -1;
+    mTimeout    = -1;
+    mSuffix     = "";
+    mSuffixType = SFXTYPE_INVALID;
+    mFilePath   = "";
+}
+
 bool LogCfg::parse(int argc, char **argv) {
-    return false;
+    // optind -- (int) the current index in *argv[].
+    // optopt -- (int) the opt char.
+    // optarg -- (char*) the opt argument string.
+    int ch;
+    while ((ch = getopt(argc, argv, LOGOPTS)) != -1) {
+        switch (ch) {
+        case 'h':
+            mLogType = LOGTYPE_HELP;
+            return true;
+            break;
+        case 'a':
+            mLogType = LOGTYPE_ALOG;
+            break;
+        case 'k':
+            mLogType = LOGTYPE_KMSG;
+            break;
+        case 'o':
+            mFilePath = optarg;
+            break;
+        case 'p':
+            mParam = optarg;
+            break;
+        case 's': // should support K/k/M/m/G/g
+            mMaxSize = (int)get_size(optarg);
+            if (mMaxSize < 0) {
+                printf("Invalid argument for option -%c: %s\n", (char)ch, optarg);
+                return false;
+            }
+            break;
+        case 't':
+            mTimeout = (int)get_timeout(optarg);
+            if (mTimeout < 0) {
+                printf("Invalid argument for option -%c: %s\n", (char)ch, optarg);
+                return false;
+            }
+            break;
+        case 'x':
+            mSuffix = optarg;
+            if (mSuffix.compare("date") == 0) {
+                mSuffixType = SFXTYPE_DATE;
+            } else
+            if (mSuffix.compare(0, strlen("persist."), "persist.") == 0) {
+                // getprop, increase, and setprop back.
+                mSuffixType = SFXTYPE_PROP;
+            } else
+            if (access(mSuffix.c_str(), R_OK|W_OK) == 0) {
+                // read, increase, and write back.
+                mSuffixType = SFXTYPE_INDEX;
+            }
+            if (mSuffixType == SFXTYPE_INVALID) {
+                printf("Invalid argument for option -%c: %s\n", (char)ch, optarg);
+                return false;
+            }
+            break;
+        case '?': // invalid option
+            printf("Invalid option -%c\n", (char)optopt);
+            return false;
+            break;
+        case ':': // lack of param
+            printf("Lack of argument for option -%c\n", (char)optopt);
+            return false;
+            break;
+        default:
+            printf("Unknown option -%c\n", (char)ch);
+            return false;
+            break;
+        }
+    }
+
+    if (mLogType == LOGTYPE_INVALID) {
+        printf("Must set -h, -k or -a option.\n");
+        return false;
+    }
+
+    if (mFilePath.empty()) {
+        printf("Must set -o option.\n");
+        return false;
+    }
+
+    if (optind < argc) {
+        printf("Invalid argument: %s\n", argv[optind]);
+        return false;
+    }
+
+    return true;
+}
+
+void LogCfg::show() {
+    printf("mLogType   : %d\n", mLogType);
+    printf("mParam     : %s\n", mParam.c_str());
+    printf("mMaxSize   : %d\n", mMaxSize);
+    printf("mTimeout   : %d\n", mTimeout);
+    printf("mSuffix    : %s\n", mSuffix.c_str());
+    printf("mSuffixType: %d\n", mSuffixType);
+    printf("mFilePath  : %s\n", mFilePath.c_str());
 }
 
 LogSaver::LogSaver(LogCfg &cfg) {
 }
 
 int LogSaver::run() {
+    printf("%s() %d\n", __FUNCTION__, __LINE__);
     return 0;
 }
 

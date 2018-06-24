@@ -5,9 +5,11 @@
 int main(int argc, char *argv[]) {
     LogCfg cfg;
     if (!cfg.parse(argc, argv)) {
+        cfg.show();
         cfg.showUsage();
         return -EINVAL;
     }
+    cfg.show();
 
     LogSaver logsaver(cfg);
     return logsaver.run();
