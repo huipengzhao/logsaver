@@ -9,7 +9,6 @@ int main(int argc, char *argv[]) {
         cfg.showUsage();
         return -EINVAL;
     }
-    cfg.show();
 
     LogSaver logsaver(cfg);
     return logsaver.run();

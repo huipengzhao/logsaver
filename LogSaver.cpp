@@ -221,10 +221,11 @@ void LogCfg::show() {
 }
 
 LogSaver::LogSaver(LogCfg &cfg) {
+    mCfg = cfg;
 }
 
 int LogSaver::run() {
-    printf("%s() %d\n", __FUNCTION__, __LINE__);
+    mCfg.show();
     return 0;
 }
 
