@@ -2,8 +2,9 @@
 #include <errno.h>
 #include <getopt.h>
 #include <unistd.h>
+#include <fcntl.h>
 
-#include "LogSaver.h"
+#include "LogCfg.h"
 
 #define NL "\n"
 #define LOGOPTS "hakp:s:t:x:o:"
@@ -218,14 +219,5 @@ void LogCfg::show() {
     printf("mSuffix    : %s\n", mSuffix.c_str());
     printf("mSuffixType: %d\n", mSuffixType);
     printf("mFilePath  : %s\n", mFilePath.c_str());
-}
-
-LogSaver::LogSaver(LogCfg &cfg) {
-    mCfg = cfg;
-}
-
-int LogSaver::run() {
-    mCfg.show();
-    return 0;
 }
 

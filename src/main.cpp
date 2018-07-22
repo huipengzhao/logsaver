@@ -1,5 +1,6 @@
 #include <errno.h>
 
+#include "LogCfg.h"
 #include "LogSaver.h"
 
 int main(int argc, char *argv[]) {

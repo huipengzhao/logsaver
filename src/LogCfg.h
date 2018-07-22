@@ -1,5 +1,5 @@
-#ifndef LOGSAVER_H
-#define LOGSAVER_H
+#ifndef LOGCFG_H
+#define LOGCFG_H
 
 #include <string>
 
@@ -35,13 +35,4 @@ public:
     string  mFilePath;
 };
 
-class LogSaver {
-public:
-    LogSaver(LogCfg &cfg);
-    int run();
-
-protected:
-    LogCfg mCfg;
-};
-
-#endif //LOGSAVER_H
+#endif //LOGCFG_H
