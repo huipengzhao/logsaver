@@ -44,7 +44,6 @@ int KLogger::kReadAll(char *buf, int len) {
 
 int KLogger::go() {
     int bufsize = kGetRingBufSize();
-    LSLOG("KLOG buffer size: %d", bufsize);
     char *buf = (char*)malloc(bufsize);
     int n = kReadAll(buf, bufsize);
     while(1) {

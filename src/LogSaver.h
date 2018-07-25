@@ -1,9 +1,16 @@
 #ifndef LOGSAVER_H
 #define LOGSAVER_H
 
+//-----------------------------------------------------------------------------
+// LOG UTILS
+//-----------------------------------------------------------------------------
 #include <stdio.h>
-#define LSLOG(fmt, args...) printf("%s %d: " fmt "\n", __FUNCTION__, __LINE__, ##args);
+// Here we use stderr because stdout maybe used as default saver.
+#define LSLOG(fmt, args...) fprintf(stderr, "%s %d: " fmt "\n", __FUNCTION__, __LINE__, ##args);
 
+//-----------------------------------------------------------------------------
+// BASIC DEFINITIONS
+//-----------------------------------------------------------------------------
 #include "LogCfg.h"
 
 class FileSaver {
