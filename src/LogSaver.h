@@ -3,6 +3,9 @@
 
 #include "LogCfg.h"
 
+/**
+ * Abstract class to save buffers into files.
+ */
 class FileSaver {
 public:
     FileSaver() {};
@@ -11,24 +14,32 @@ public:
     virtual void finish() = 0;
 };
 
+/**
+ * Abstract class to produce log buffers.
+ */
 class Logger {
 public:
-    Logger(FileSaver &saver) : mSaver(saver) {}
+    Logger(FileSaver *saver) : mSaver(saver) {}
     virtual ~Logger() {};
     virtual int go() = 0;
     virtual void stop() = 0;
 
 protected:
-    FileSaver &mSaver;
+    FileSaver *mSaver;
 };
 
+/**
+ * Concrete class to fetch and save logs.
+ * This is a single instance class.
+ */
+class LogSaverPriv;
 class LogSaver {
 public:
-    LogSaver(LogCfg &cfg);
-    int run();
+    LogSaver();
+    int run(LogCfg cfg);
 
-protected:
-    LogCfg mCfg;
+private:
+    LogSaverPriv *priv;
 };
 
 #endif //LOGSAVER_H

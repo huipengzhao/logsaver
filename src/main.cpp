@@ -22,6 +22,6 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    LogSaver logsaver(cfg);
-    return logsaver.run();
+    LogSaver logsaver;
+    return logsaver.run(cfg);
 }

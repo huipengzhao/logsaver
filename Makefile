@@ -7,3 +7,6 @@ SRC += src/main.cpp
 
 logsaver: $(SRC)
 	g++ -o $@ $^ -Wall -std=c++11 -lpthread
+
+clean:
+	rm -f logsaver

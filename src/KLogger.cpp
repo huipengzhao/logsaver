@@ -7,9 +7,9 @@
 #include <string.h>
 #include <pthread.h>
 #include <signal.h>
-
 #include <sys/klog.h>
 
+#define LS_DEBUG
 #include "utils.h"
 #include "KLogger.h"
 
@@ -19,6 +19,7 @@
 #define SYSLOG_ACTION_CONSOLE_LEVEL 8
 #define SYSLOG_ACTION_SIZE_BUFFER   10
 
+// Signal handlers for child thread
 static void klog_sighandler(int sig) {
     if (sig==SIGUSR1) {
         LSLOG("Exit the child thread.");
@@ -26,7 +27,8 @@ static void klog_sighandler(int sig) {
     }
 }
 
-static void *klog_thread_main(void *data) {
+// Child thread main entry, child thread does the klogctrl.
+static void *klog_thread(void *data) {
     KLogger *klogger = (KLogger *)data;
     if (klogger != NULL) {
         klogger->kLogThread();
@@ -41,7 +43,12 @@ public:
     char *    buf;
 };
 
-KLogger::KLogger(FileSaver &saver) : Logger(saver), mPriv(new KLoggerPriv()) {}
+KLogger::KLogger(FileSaver *saver) : Logger(saver), mPriv(new KLoggerPriv()) {
+    if (!mSaver) {
+        // Yes, saver can be null, but its may not be what we want.
+        LSLOG("Warning: mSaver is NULL!");
+    }
+}
 
 // override
 KLogger::~KLogger() { delete mPriv; }
@@ -84,7 +91,9 @@ void KLogger::kLogThread() {
 
     int n = kReadAll(buf, bufsize);
     while(n > 0) {
-        mSaver.save(buf, n);
+        if (mSaver) {
+            mSaver->save(buf, n);
+        }
         n = kRead(buf, bufsize);
     }
     LSLOG("exit");
@@ -103,20 +112,28 @@ int KLogger::go() {
         Here we put it in a child thread, and stop it by raising a SIGUSR1
         signal and exiting the child thread in the sig-handler.
     */
-    int err = pthread_create(&mPriv->thrd, NULL, klog_thread_main, this);
+    int err = pthread_create(&mPriv->thrd, NULL, klog_thread, this);
     if (err) return err;
 
-    pthread_join(mPriv->thrd, NULL);
+    // Wait for the child thread.
+    int ret = 0;
+    pthread_join(mPriv->thrd, (void **)&ret);
+    LSLOG("child thread exit with return value %d", ret);
 
-    mSaver.finish();
+    // Finish the saver.
+    if (mSaver) {
+        mSaver->finish();
+    }
 
+    // Release the resource.
     if (mPriv->buf) free(mPriv->buf);
 
     LSLOG("exit");
-    return 0;
+    return ret;
 }
 
 // override
 void KLogger::stop() {
+    LSLOG("Stop the child thread.");
     pthread_kill(mPriv->thrd, SIGUSR1);
 }
