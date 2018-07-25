@@ -7,7 +7,7 @@
 #include "LogCfg.h"
 
 #define NL "\n"
-#define LOGOPTS "hakp:s:t:x:o:"
+#define LOGOPTS "ahkp:s:t:ux:o:"
 
 // return < 0 means something is wrong.
 static long get_size(const char *str) {
@@ -45,10 +45,11 @@ void LogCfg::showUsage() {
     printf( NL
     "USAGE:" NL
     "    logsaver -h" NL
-    "    logsaver -k [options] -o file_out" NL
-    "    logsaver -a [options] -o file_out" NL
+    "    logsaver -k [options] [-o file_out]" NL
+    "    logsaver -a [options] [-o file_out]" NL
+    "    logsaver -u [options] [-o file_out]" NL
     NL
-    "    -k and -a are exclusive, the latter override the former." NL
+    "    -k -a and -u are exclusive, the latter override the former." NL
     NL
     "OPTIONS:" NL
     "    -h" NL
@@ -60,12 +61,16 @@ void LogCfg::showUsage() {
     "    -k" NL
     "        Save Kernel logs." NL
     NL
+    "    -u" NL
+    "        Save UEvent logs." NL
+    NL
     "    -o file_out" NL
     "        Output file path." NL
     NL
     "    -p parameters" NL
     "        In -a case, it is the same as logcat parameters." NL
-    "        In -k case, it indicates the kmsg source." NL
+    "        In -k case, it is ignored." NL
+    "        In -u case, it is ignored." NL
     NL
     "    -s size" NL
     "        In byte. Max size of a single log file." NL
@@ -140,6 +145,9 @@ bool LogCfg::parse(int argc, char **argv) {
         case 'k':
             mLogType = LOGTYPE_KMSG;
             break;
+        case 'u':
+            mLogType = LOGTYPE_UEVT;
+            break;
         case 'o':
             mFilePath = optarg;
             break;
@@ -198,11 +206,6 @@ bool LogCfg::parse(int argc, char **argv) {
         return false;
     }
 
-    if (mFilePath.empty()) {
-        printf("Must set -o option.\n");
-        return false;
-    }
-
     if (optind < argc) {
         printf("Invalid argument: %s\n", argv[optind]);
         return false;
@@ -219,5 +222,6 @@ void LogCfg::show() {
     printf("mSuffix    : %s\n", mSuffix.c_str());
     printf("mSuffixType: %d\n", mSuffixType);
     printf("mFilePath  : %s\n", mFilePath.c_str());
+    fflush(stdout);
 }
 

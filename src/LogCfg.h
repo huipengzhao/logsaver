@@ -12,6 +12,7 @@ public:
         LOGTYPE_HELP,
         LOGTYPE_KMSG,
         LOGTYPE_ALOG,
+        LOGTYPE_UEVT,
     };
 
     enum SfxType {
