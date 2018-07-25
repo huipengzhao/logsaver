@@ -9,6 +9,8 @@
 #include "LogCfg.h"
 #include "LogSaver.h"
 
+using namespace logsaver;
+
 int main(int argc, char *argv[]) {
     LogCfg cfg;
     if (!cfg.parse(argc, argv)) {

@@ -13,6 +13,10 @@
 #include "utils.h"
 #include "KLogger.h"
 
+using namespace logsaver;
+
+namespace logsaver {
+
 // For klogctl()
 #define SYSLOG_ACTION_READ          2
 #define SYSLOG_ACTION_READ_ALL      3
@@ -42,6 +46,8 @@ public:
     int       bufsize;
     char *    buf;
 };
+
+} //namespace logsaver
 
 KLogger::KLogger(FileSaver *saver) : Logger(saver), mPriv(new KLoggerPriv()) {
     if (!mSaver) {

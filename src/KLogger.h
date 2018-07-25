@@ -3,6 +3,8 @@
 
 #include "LogSaver.h"
 
+namespace logsaver {
+
 class KLoggerPriv;
 
 class KLogger : public Logger {
@@ -23,5 +25,7 @@ private:
 private:
     KLoggerPriv *mPriv;
 };
+
+} //namespace logsaver
 
 #endif //KLOGGER_H

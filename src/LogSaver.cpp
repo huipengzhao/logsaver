@@ -10,6 +10,10 @@
 #include "LogSaver.h"
 #include "KLogger.h"
 
+using namespace logsaver;
+
+namespace logsaver {
+
 /**
  * The DefaultFileSaver class saves buffers to stdout.
  */
@@ -59,6 +63,8 @@ static void register_sighandler() {
     sigaction(SIGINT, &action, NULL);
     sigaction(SIGALRM, &action, NULL);
 }
+
+} //namespace logsaver
 
 int LogSaverPriv::run(LogCfg cfg) {
     set_specific(this);

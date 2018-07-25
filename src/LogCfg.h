@@ -3,6 +3,8 @@
 
 #include <string>
 
+namespace logsaver {
+
 using namespace std;
 
 class LogCfg {
@@ -35,5 +37,7 @@ public:
     SfxType mSuffixType;
     string  mFilePath;
 };
+
+} //namespace logsaver
 
 #endif //LOGCFG_H

@@ -3,6 +3,8 @@
 
 #include "LogCfg.h"
 
+namespace logsaver {
+
 /**
  * Abstract class to save buffers into files.
  */
@@ -41,5 +43,7 @@ public:
 private:
     LogSaverPriv *priv;
 };
+
+} //namesapce logsaver
 
 #endif //LOGSAVER_H

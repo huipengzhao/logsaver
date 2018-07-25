@@ -9,6 +9,8 @@
 #include "utils.h"
 #include "LogCfg.h"
 
+using namespace logsaver;
+
 #define NL "\n"
 #define LOGOPTS "ahkp:s:t:ux:o:"
 

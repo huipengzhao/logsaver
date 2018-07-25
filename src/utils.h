@@ -13,6 +13,7 @@
 #endif
 
 #include <pthread.h>
+namespace logsaver {
 // Thread specific data control
 static pthread_once_t s_once = PTHREAD_ONCE_INIT;
 static pthread_key_t s_ptr_key;
@@ -27,8 +28,10 @@ static inline void *get_specific() {
     pthread_once(&s_once, init_once);
     return pthread_getspecific(s_ptr_key);
 }
+} //namespace logsaver
 
 #include <sys/time.h>
+namespace logsaver {
 // Timer functions for timeout
 static inline void set_oneshot_timer(int timeout_ms) {
     struct itimerval new_value, old_value;
@@ -41,5 +44,6 @@ static inline void set_oneshot_timer(int timeout_ms) {
 static inline void unset_oneshot_timer() {
     set_oneshot_timer(0);
 }
+} //namespace logsaver
 
 #endif //UTILS_H
