@@ -8,7 +8,7 @@ using namespace std;
 class LogCfg {
 public:
     enum LogType {
-        LOGTYPE_INVALID = 0,
+        LOGTYPE_NONE = 0,
         LOGTYPE_HELP,
         LOGTYPE_KMSG,
         LOGTYPE_ALOG,
@@ -16,7 +16,7 @@ public:
     };
 
     enum SfxType {
-        SFXTYPE_INVALID = 0,
+        SFXTYPE_NONE = 0,
         SFXTYPE_INDEX,
         SFXTYPE_PROP,
         SFXTYPE_DATE,
@@ -25,7 +25,7 @@ public:
     LogCfg();
     void showUsage();
     bool parse(int argc, char **argv);
-    void show();
+    void show(); // only for debug
 
     LogType mLogType;
     string  mParam;

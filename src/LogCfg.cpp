@@ -1,9 +1,12 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <errno.h>
 #include <getopt.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
 
+#include "utils.h"
 #include "LogCfg.h"
 
 #define NL "\n"
@@ -119,12 +122,12 @@ void LogCfg::showUsage() {
 }
 
 LogCfg::LogCfg() {
-    mLogType    = LOGTYPE_INVALID;
+    mLogType    = LOGTYPE_NONE;
     mParam      = "";
     mMaxSize    = -1;
     mTimeout    = -1;
     mSuffix     = "";
-    mSuffixType = SFXTYPE_INVALID;
+    mSuffixType = SFXTYPE_NONE;
     mFilePath   = "";
 }
 
@@ -181,7 +184,7 @@ bool LogCfg::parse(int argc, char **argv) {
                 // read, increase, and write back.
                 mSuffixType = SFXTYPE_INDEX;
             }
-            if (mSuffixType == SFXTYPE_INVALID) {
+            if (mSuffixType == SFXTYPE_NONE) {
                 printf("Invalid argument for option -%c: %s\n", (char)ch, optarg);
                 return false;
             }
@@ -201,8 +204,8 @@ bool LogCfg::parse(int argc, char **argv) {
         }
     }
 
-    if (mLogType == LOGTYPE_INVALID) {
-        printf("Must set -h, -k or -a option.\n");
+    if (mLogType == LOGTYPE_NONE) {
+        printf("Must set -h, -k -a or -u option.\n");
         return false;
     }
 
@@ -215,13 +218,13 @@ bool LogCfg::parse(int argc, char **argv) {
 }
 
 void LogCfg::show() {
-    printf("mLogType   : %d\n", mLogType);
-    printf("mParam     : %s\n", mParam.c_str());
-    printf("mMaxSize   : %d\n", mMaxSize);
-    printf("mTimeout   : %d\n", mTimeout);
-    printf("mSuffix    : %s\n", mSuffix.c_str());
-    printf("mSuffixType: %d\n", mSuffixType);
-    printf("mFilePath  : %s\n", mFilePath.c_str());
+    LSLOG("mLogType   : %d", mLogType);
+    LSLOG("mParam     : %s", mParam.c_str());
+    LSLOG("mMaxSize   : %d", mMaxSize);
+    LSLOG("mTimeout   : %d", mTimeout);
+    LSLOG("mSuffix    : %s", mSuffix.c_str());
+    LSLOG("mSuffixType: %d", mSuffixType);
+    LSLOG("mFilePath  : %s", mFilePath.c_str());
     fflush(stdout);
 }
 
