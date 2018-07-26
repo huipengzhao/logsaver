@@ -34,10 +34,9 @@ static void klog_sighandler(int sig) {
 // Child thread main entry, child thread does the klogctrl.
 static void *klog_thread(void *data) {
     KLogger *klogger = (KLogger *)data;
-    if (klogger != NULL) {
-        klogger->kLogThread();
-    }
-    return NULL;
+    if (klogger == NULL) { return (void*)(-EINVAL); }
+    long ret = klogger->kLogThread();
+    return (void*)ret;
 }
 
 class KLoggerPriv {
@@ -75,7 +74,7 @@ int KLogger::kReadAll(char *buf, int len) {
     return klogctl(SYSLOG_ACTION_READ_ALL, buf, (long) len);
 }
 
-void KLogger::kLogThread() {
+int KLogger::kLogThread() {
     LSLOG("start");
     int bufsize = mPriv->bufsize;
     char *buf = mPriv->buf;
@@ -96,6 +95,7 @@ void KLogger::kLogThread() {
         }
     }
     LSLOG("exit");
+    return (n < 0 ? n : 0);
 }
 
 // override
@@ -120,9 +120,9 @@ int KLogger::go() {
     if (err) return err;
 
     // Wait for the child thread.
-    int ret = 0;
-    pthread_join(mPriv->thrd, (void **)&ret);
-    LSLOG("child thread exit with return value %d", ret);
+    long ret = NULL;
+    pthread_join(mPriv->thrd, (void**)&ret);
+    LSLOG("child thread exit with return value %d", (int)ret);
 
     // Finish the saver.
     if (mSaver) {
@@ -133,7 +133,7 @@ int KLogger::go() {
     if (mPriv->buf) free(mPriv->buf);
 
     LSLOG("exit");
-    return ret;
+    return (int)ret;
 }
 
 // override

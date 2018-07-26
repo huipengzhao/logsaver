@@ -14,7 +14,7 @@ public:
     int go(); //override
     void stop(); //override
 
-    void kLogThread();
+    int kLogThread();
 
 private:
     int kGetRingBufSize();
