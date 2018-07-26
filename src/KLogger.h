@@ -9,7 +9,7 @@ class KLoggerPriv;
 
 class KLogger : public Logger {
 public:
-    KLogger(FileSaver *saver);
+    KLogger();
     ~KLogger(); //override
     int go(); //override
     void stop(); //override

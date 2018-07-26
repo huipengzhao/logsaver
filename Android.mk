@@ -20,7 +20,8 @@ LOCAL_SHARED_LIBRARIES := \
 LOCAL_SRC_FILES        := \
                           src/LogCfg.cpp \
                           src/LogSaver.cpp \
-			  src/KLogger.cpp \
+                          src/KLogger.cpp \
+                          src/FileSavers.cpp \
                           src/main.cpp \
 
 include $(BUILD_EXECUTABLE)

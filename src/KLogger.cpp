@@ -49,12 +49,7 @@ public:
 
 } //namespace logsaver
 
-KLogger::KLogger(FileSaver *saver) : Logger(saver), mPriv(new KLoggerPriv()) {
-    if (!mSaver) {
-        // Yes, saver can be null, but its may not be what we want.
-        LSLOG("Warning: mSaver is NULL!");
-    }
-}
+KLogger::KLogger() : Logger(), mPriv(new KLoggerPriv()) {}
 
 // override
 KLogger::~KLogger() { delete mPriv; }
@@ -106,12 +101,17 @@ int KLogger::go() {
     mPriv->bufsize = kGetRingBufSize();
     mPriv->buf = (char*)malloc(mPriv->bufsize);
 
+    // Init the saver before anything.
+    if (mSaver) {
+        mSaver->prepare();
+    }
+
     /*
         The klogctl() function will block in uninterruptable state (why?),
         So a handled SIGINT is not going to interrupt it. So that it will
         not respond to the Ctrl+C keypress.
         Here we put it in a child thread, and stop it by raising a SIGUSR1
-        signal and exiting the child thread in the sig-handler.
+        signal and exiting the child thread in the signal handler.
     */
     int err = pthread_create(&mPriv->thrd, NULL, klog_thread, this);
     if (err) return err;

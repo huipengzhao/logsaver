@@ -9,23 +9,11 @@
 #include "utils.h"
 #include "LogSaver.h"
 #include "KLogger.h"
+#include "FileSavers.h"
 
 using namespace logsaver;
 
 namespace logsaver {
-
-/**
- * The DefaultFileSaver class saves buffers to stdout.
- */
-class DefaultFileSaver : public FileSaver {
-public:
-    // override
-    int save(const char *buf, int bytes) {
-        return write(fileno(stdout), buf, bytes);
-    }
-    // override
-    void finish() {};
-};
 
 /**
  * The LogSaverPriv class does the real job.
@@ -56,7 +44,14 @@ static void logsaver_sighandler(int sig) {
     }
 }
 
-static void register_sighandler() {
+static void register_sighandler(void *ptr) {
+    // save *this* ptr to thread specific area, so we can get use of it
+    // in the signal handler of this thread.
+    // Yes, we can also save the ptr in the static data section, that way
+    // is easier, but using a global variable to save the ptr makes the
+    // LogSaver have to be singleton.
+    set_specific(ptr);
+
     struct sigaction action;
     action.sa_flags = 0;
     action.sa_handler = logsaver_sighandler;
@@ -67,30 +62,39 @@ static void register_sighandler() {
 } //namespace logsaver
 
 int LogSaverPriv::run(LogCfg cfg) {
-    set_specific(this);
-
     cfg.show();
 
     // Determine the file saver.
     if (cfg.mFilePath.empty()) {
-        mFSaver = new DefaultFileSaver();
-    }
+        mFSaver = new StdoutSaver();
+    } else if (cfg.mSuffixType == LogCfg::SfxType::SFXTYPE_NONE) {
+        mFSaver = new SimpleFileSaver(cfg.mFilePath);
+    } else if (cfg.mSuffixType == LogCfg::SfxType::SFXTYPE_INDEX) {
+        mFSaver = new IndexedFileSaver(cfg.mFilePath);
+    } else if (cfg.mSuffixType == LogCfg::SfxType::SFXTYPE_PROP) {
+        mFSaver = new PropertiedFileSaver(cfg.mFilePath);
+    } else if (cfg.mSuffixType == LogCfg::SfxType::SFXTYPE_DATE) {
+        mFSaver = new DatedFileSaver(cfg.mFilePath);
+    } else { /* Never run here */ }
 
     // Determine the logger.
     switch ((int)cfg.mLogType) {
     case LogCfg::LogType::LOGTYPE_KMSG:
-        mLogger = new KLogger(mFSaver);
+        mLogger = new KLogger();
         break;
     case LogCfg::LogType::LOGTYPE_ALOG:
-        //mLogger = new ALogger(mFSaver);
+        //mLogger = new ALogger();
         break;
     case LogCfg::LogType::LOGTYPE_UEVT:
-        //mLogger = new ULogger(mFSaver);
+        //mLogger = new ULogger();
         break;
     }
 
+    // Link the logger with the saver.
+    mLogger->setFileSaver(mFSaver);
+
     // Register signal handler, for SIGINT and SIGALRM.
-    register_sighandler();
+    register_sighandler(this);
 
     // Start timer on demand.
     if (cfg.mTimeout > 0) {
@@ -106,7 +110,7 @@ int LogSaverPriv::run(LogCfg cfg) {
     if (cfg.mTimeout > 0) {
         unset_oneshot_timer();
     }
-    
+
     return err;
 }
 
