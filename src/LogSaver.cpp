@@ -70,7 +70,7 @@ int LogSaverPriv::run(LogCfg cfg) {
     } else if (cfg.mSuffixType == LogCfg::SfxType::SFXTYPE_NONE) {
         mFSaver = new SimpleFileSaver(cfg.mFilePath);
     } else if (cfg.mSuffixType == LogCfg::SfxType::SFXTYPE_INDEX) {
-        mFSaver = new IndexedFileSaver(cfg.mFilePath);
+        mFSaver = new IndexedFileSaver(cfg.mFilePath, cfg.mSuffix);
     } else if (cfg.mSuffixType == LogCfg::SfxType::SFXTYPE_PROP) {
         mFSaver = new PropertiedFileSaver(cfg.mFilePath);
     } else if (cfg.mSuffixType == LogCfg::SfxType::SFXTYPE_DATE) {

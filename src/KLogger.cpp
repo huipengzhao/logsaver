@@ -91,6 +91,9 @@ void KLogger::kLogThread() {
             mSaver->save(buf, n);
         }
         n = kRead(buf, bufsize);
+        if (n < 0) {
+            LSLOG("kRead() returns %d: %s", n, strerror(errno));
+        }
     }
     LSLOG("exit");
 }

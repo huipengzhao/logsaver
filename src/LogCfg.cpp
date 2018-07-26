@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <string.h>
 
+#define LS_DEBUG
 #include "utils.h"
 #include "LogCfg.h"
 
@@ -181,10 +182,17 @@ bool LogCfg::parse(int argc, char **argv) {
             if (mSuffix.compare(0, strlen("persist."), "persist.") == 0) {
                 // getprop, increase, and setprop back.
                 mSuffixType = SFXTYPE_PROP;
-            } else
-            if (access(mSuffix.c_str(), R_OK|W_OK) == 0) {
-                // read, increase, and write back.
-                mSuffixType = SFXTYPE_INDEX;
+            } else {
+                if (access(mSuffix.c_str(), R_OK|W_OK) == 0) {
+                    // read, increase, and write back.
+                    mSuffixType = SFXTYPE_INDEX;
+                } else { // try to create the index file.
+                    FILE *tmpfp = fopen(mSuffix.c_str(), "w");
+                    if (tmpfp) {
+                        fclose(tmpfp);
+                        mSuffixType = SFXTYPE_INDEX;
+                    }
+                }
             }
             if (mSuffixType == SFXTYPE_NONE) {
                 printf("Invalid argument for option -%c: %s\n", (char)ch, optarg);

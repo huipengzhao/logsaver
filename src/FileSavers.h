@@ -55,9 +55,11 @@ public:
     int save(const char *buf, int bytes); // override
     void finish(); // override
 protected:
+    FILE *openNextFile();
     virtual string getNextSuffix() = 0;
 protected:
     string mFilePathBase;
+    FILE *mCurrFile;
 };
 
 /**
@@ -66,9 +68,11 @@ protected:
  */
 class IndexedFileSaver : public SuffixedFileSaverBase {
 public:
-    IndexedFileSaver(string filePathBase);
+    IndexedFileSaver(string filePathBase, string indexFilePath);
 protected:
     string getNextSuffix(); // override
+protected:
+    string mIndexPath;
 };
 
 /**
