@@ -59,25 +59,20 @@ KLogger::KLogger(FileSaver *saver) : Logger(saver), mPriv(new KLoggerPriv()) {
 // override
 KLogger::~KLogger() { delete mPriv; }
 
-bool KLogger::kSetLevel(int level) {
-    /*
-        KERN_EMERG             0        System is unusable
-        KERN_ALERT             1        Action must be taken immediately
-        KERN_CRIT              2        Critical conditions
-        KERN_ERR               3        Error conditions
-        KERN_WARNING           4        Warning conditions
-        KERN_NOTICE            5        Normal but significant condition
-        KERN_INFO              6        Informational
-        KERN_DEBUG             7        Debug-level messages
-    */
-    return (klogctl(SYSLOG_ACTION_CONSOLE_LEVEL, NULL, (long) level) == 0);
-}
-
 int KLogger::kGetRingBufSize() {
     return klogctl(SYSLOG_ACTION_SIZE_BUFFER, NULL, 0);
 }
 
 int KLogger::kRead(char *buf, int len) {
+    /*
+     * NOTE: SYSLOG_ACTION_READ needs CAP_SYSLOG capability.
+     * Several ways to overcome this:
+     * 1) Android supports capabilities setting in init.rc.
+     * 2) Invoke some cap setting tools to set cap to the process dynamically.
+     * 3) Read from /proc/kmsg instead of using klogctl(SYSLOG_ACTION_READ).
+     *    Change owner and mode of /proc/kmsg, allow the process to access it.
+     * 4) Run the process as root or sudo, not recommended.
+    */
     return klogctl(SYSLOG_ACTION_READ, buf, (long) len);
 }
 

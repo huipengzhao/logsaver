@@ -17,10 +17,9 @@ public:
     void kLogThread();
 
 private:
-    bool kSetLevel(int level);
-    int  kGetRingBufSize();
-    int  kRead(char *buf, int len);
-    int  kReadAll(char *buf, int len);
+    int kGetRingBufSize();
+    int kRead(char *buf, int len);
+    int kReadAll(char *buf, int len);
 
 private:
     KLoggerPriv *mPriv;
