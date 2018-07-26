@@ -21,7 +21,11 @@ Other Android versions are not adapted for now.
 
 ## How To Use It
 Example:
-  logsaver -k /dev/kmsg /data/bootchart/klog
+  sudo logsaver -k
+  -- This will print kernel log to stdout.
+
+  sudo logsaver -k -o /tmp/klog -x ~/.k\_idx -t 5
+  -- This will save kernel log to /tmp/klog\_xxx, according to ~/.k\_idx, and quit after 5 seconds.
 
 ## TODO
 **For Kernel Log**
