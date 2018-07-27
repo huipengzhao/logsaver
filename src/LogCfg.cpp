@@ -110,13 +110,13 @@ void LogCfg::showUsage() {
     "        Unset means always write to the same file path." NL
     NL
     "EXAMPLES:" NL
-    "    logsaver -k -p /dev/kmsg -s 2m -t 600 -x persist.logsaver.k.idx /data/bootchart/klog" NL
+    "    logsaver -k -s 2m -t 600 -x persist.logsaver.k.idx -o /data/bootchart/klog" NL
     "        This command saves kernel logs into /data/bootchart/klog_YYMMDD-hhmmss," NL
     "        where <idx> is from the persist.logsaver.k.idx property." NL
     "        The output logs are splited into files based on size of 2MB." NL
     "        And the process will stop after 600 seconds." NL
     NL
-    "    logsaver -a -p '-s ActivityManager:V Zygote:V' -s 4m -x date /data/bootchart/alog" NL
+    "    logsaver -a -p '-s ActivityManager:V Zygote:V' -s 4m -x date -o /data/bootchart/alog" NL
     "        This command saves android logs into /data/bootchart/alog_<date>," NL
     "        Use logcat parameter '-s ActivityManager:V Zygote:V' to filter the logs." NL
     "        The logsaver will split log files by 4MB, and it will never stop." NL
