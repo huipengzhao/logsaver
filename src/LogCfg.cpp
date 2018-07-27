@@ -48,7 +48,7 @@ static long get_timeout(const char *str) {
 }
 
 void LogCfg::showUsage() {
-    printf( NL
+    LSLOG_RAW( NL
     "USAGE:" NL
     "    logsaver -h" NL
     "    logsaver -k [options] [-o file_out]" NL
@@ -163,14 +163,14 @@ bool LogCfg::parse(int argc, char **argv) {
         case 's': // should support K/k/M/m/G/g
             mMaxSize = (int)get_size(optarg);
             if (mMaxSize < 0) {
-                printf("Invalid argument for option -%c: %s\n", (char)ch, optarg);
+                LSLOG_RAW("Invalid argument for option -%c: %s\n", (char)ch, optarg);
                 return false;
             }
             break;
         case 't':
             mTimeout = (int)get_timeout(optarg);
             if (mTimeout < 0) {
-                printf("Invalid argument for option -%c: %s\n", (char)ch, optarg);
+                LSLOG_RAW("Invalid argument for option -%c: %s\n", (char)ch, optarg);
                 return false;
             }
             break;
@@ -183,44 +183,42 @@ bool LogCfg::parse(int argc, char **argv) {
                 // getprop, increase, and setprop back.
                 mSuffixType = SFXTYPE_PROP;
             } else {
+                // touch the mSuffix file.
+                close(open(mSuffix.c_str(), O_CREAT|O_RDWR, 0600));
                 if (access(mSuffix.c_str(), R_OK|W_OK) == 0) {
                     // read, increase, and write back.
                     mSuffixType = SFXTYPE_INDEX;
-                } else { // try to create the index file.
-                    FILE *tmpfp = fopen(mSuffix.c_str(), "w");
-                    if (tmpfp) {
-                        fclose(tmpfp);
-                        mSuffixType = SFXTYPE_INDEX;
-                    }
+                } else {
+                    LSLOG("Tried to touch file %s, but failed.\n", mSuffix.c_str());
                 }
             }
             if (mSuffixType == SFXTYPE_NONE) {
-                printf("Invalid argument for option -%c: %s\n", (char)ch, optarg);
+                LSLOG_RAW("Invalid argument for option -%c: %s\n", (char)ch, mSuffix.c_str());
                 return false;
             }
             break;
         case '?': // invalid option
-            printf("Invalid option -%c\n", (char)optopt);
+            LSLOG_RAW("Invalid option -%c\n", (char)optopt);
             return false;
             break;
         case ':': // lack of param
-            printf("Lack of argument for option -%c\n", (char)optopt);
+            LSLOG_RAW("Lack of argument for option -%c\n", (char)optopt);
             return false;
             break;
         default:
-            printf("Unknown option -%c\n", (char)ch);
+            LSLOG_RAW("Unknown option -%c\n", (char)ch);
             return false;
             break;
         }
     }
 
     if (mLogType == LOGTYPE_NONE) {
-        printf("Must set -h, -k -a or -u option.\n");
+        LSLOG_RAW("Must set -h, -k -a or -u option.\n");
         return false;
     }
 
     if (optind < argc) {
-        printf("Invalid argument: %s\n", argv[optind]);
+        LSLOG_RAW("Invalid argument: %s\n", argv[optind]);
         return false;
     }
 
@@ -228,13 +226,13 @@ bool LogCfg::parse(int argc, char **argv) {
 }
 
 void LogCfg::show() {
-    LSLOG("mLogType   : %d", mLogType);
-    LSLOG("mParam     : %s", mParam.c_str());
-    LSLOG("mMaxSize   : %d", mMaxSize);
-    LSLOG("mTimeout   : %d", mTimeout);
-    LSLOG("mSuffix    : %s", mSuffix.c_str());
-    LSLOG("mSuffixType: %d", mSuffixType);
-    LSLOG("mFilePath  : %s", mFilePath.c_str());
+    LSLOG_RAW("mLogType   : %d\n", mLogType);
+    LSLOG_RAW("mParam     : %s\n", mParam.c_str());
+    LSLOG_RAW("mMaxSize   : %d\n", mMaxSize);
+    LSLOG_RAW("mTimeout   : %d\n", mTimeout);
+    LSLOG_RAW("mSuffix    : %s\n", mSuffix.c_str());
+    LSLOG_RAW("mSuffixType: %d\n", mSuffixType);
+    LSLOG_RAW("mFilePath  : %s\n", mFilePath.c_str());
     fflush(stdout);
 }
 

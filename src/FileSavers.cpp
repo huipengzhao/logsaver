@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 
+#define LS_DEBUG
 #include "utils.h"
 #include "FileSavers.h"
 

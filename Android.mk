@@ -16,6 +16,7 @@ LOCAL_CFLAGS           += $(logsaver_CFLAGS)
 LOCAL_SHARED_LIBRARIES := \
                           liblog \
                           libutils \
+                          libcutils \
 
 LOCAL_SRC_FILES        := \
                           src/LogCfg.cpp \

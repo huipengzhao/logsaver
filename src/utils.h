@@ -3,15 +3,41 @@
 
 #include <stdio.h>
 
+//-----------------------------------------------------------------------------
+// Log utilities.
+//-----------------------------------------------------------------------------
 //#define LS_DEBUG
 #ifdef LS_DEBUG
+#ifdef ANDROID
+
+#include <cutils/klog.h>
+
+#define LSLOG_RAW(fmt, args...) \
+    KLOG_INFO("logsaver", fmt, ##args)
+
+#define LSLOG(fmt, args...) \
+    LSLOG_RAW("%s %d: " fmt "\n", __FUNCTION__, __LINE__, ##args)
+
+#else  //!ANDROID
+
+#define LSLOG_RAW(fmt, args...) \
+    fprintf(stderr, fmt, ##args)
+
 // Here we use stderr because stdout maybe used as default saver.
 #define LSLOG(fmt, args...) \
-    fprintf(stderr, "%s %d: " fmt "\n", __FUNCTION__, __LINE__, ##args);
-#else
-#define LSLOG(fmt, args...)
-#endif
+    LSLOG_RAW("%s %d: " fmt "\n", __FUNCTION__, __LINE__, ##args)
 
+#endif //ANDROID
+#else  //!LS_DEBUG
+
+#define LSLOG_RAW(fmt, args...)
+#define LSLOG(fmt, args...)
+
+#endif //LS_DEBUG
+
+//-----------------------------------------------------------------------------
+// Thread specific data utilities.
+//-----------------------------------------------------------------------------
 #include <pthread.h>
 namespace logsaver {
 // Thread specific data control
@@ -30,6 +56,9 @@ static inline void *get_specific() {
 }
 } //namespace logsaver
 
+//-----------------------------------------------------------------------------
+// Timer utilities.
+//-----------------------------------------------------------------------------
 #include <sys/time.h>
 namespace logsaver {
 // Timer functions for timeout
