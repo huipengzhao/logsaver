@@ -8,5 +8,5 @@ allow logsaver kernel:system { syslog_read syslog_mod };
 allow logsaver kmsg_device:chr_file { open read write };
 allow logsaver self:capability dac_override;
 allow logsaver self:capability2 syslog;
-allow logsaver bootchart_data_file:dir { add_name search write };
-allow logsaver bootchart_data_file:file { create open write getattr read };
+allow logsaver misc_logd_file:dir { add_name search write };
+allow logsaver misc_logd_file:file { create open write getattr read };

@@ -1,1 +1,5 @@
-/system/bin/logsaver u:object_r:logsaver_exec:s0
+
+#############################
+# For logsaver service
+/data/misc/logsaver(/.*)?   u:object_r:misc_logsaver_file:s0
+/system/bin/logsaver        u:object_r:logsaver_exec:s0

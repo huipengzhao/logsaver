@@ -1,4 +1,10 @@
-service logsaver /system/bin/logsaver -k -t 4 -x /data/bootchart/k_idx -o /data/bootchart/klog
+on post-fs-data
+    mkdir /data/misc/logsaver 0771 logd log
+    chmod 666 /dev/kmsg
+
+service logsaver /system/bin/logsaver -k -t 4 -x /data/misc/logsaver/k_idx -o /data/misc/logsaver/klog
     class main
-    user root
+    user logd
+    group log
+    capabilities SYSLOG
     oneshot
