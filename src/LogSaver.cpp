@@ -9,9 +9,8 @@
 #include "utils.h"
 #include "LogSaver.h"
 #include "KLogger.h"
+#include "ULogger.h"
 #include "FileSavers.h"
-
-using namespace logsaver;
 
 namespace logsaver {
 
@@ -25,21 +24,29 @@ public:
 public:
     FileSaver *mFSaver;
     Logger    *mLogger;
+
+private:
+    FileSaver *createFileSaver(LogCfg cfg);
+    Logger *createLogger(LogCfg cfg);
 };
+
+} //namespace logsaver
+
+using namespace logsaver;
 
 static void logsaver_sighandler(int sig) {
     LogSaverPriv *p = (LogSaverPriv*)get_specific();
     if (!p || !p->mLogger) {
         // should not happen, we just cry for it.
-        LSLOG("Error: LogSaverPriv or LogSaverPriv.mLogger should not be NULL!");
+        L("Error: LogSaverPriv or LogSaverPriv.mLogger should not be NULL!");
         return;
     }
     if(sig==SIGINT){
-        LSLOG("Ctrl + C pressed, quit.");
+        L("Ctrl + C pressed, quit.");
         p->mLogger->stop();
     }
     if (sig==SIGALRM) {
-        LSLOG("The logging is timeout.");
+        L("The logging is timeout.");
         p->mLogger->stop();
     }
 }
@@ -59,36 +66,49 @@ static void register_sighandler(void *ptr) {
     sigaction(SIGALRM, &action, NULL);
 }
 
-} //namespace logsaver
+FileSaver *LogSaverPriv::createFileSaver(LogCfg cfg) {
+    FileSaver * fsaver = NULL;
+    if (cfg.mFilePath.empty()) {
+        fsaver = new StdoutSaver();
+    } else if (cfg.mSuffixType == LogCfg::SfxType::SFXTYPE_NONE) {
+        fsaver = new SimpleFileSaver(cfg.mFilePath);
+    } else if (cfg.mSuffixType == LogCfg::SfxType::SFXTYPE_INDEX) {
+        fsaver = new IndexedFileSaver(cfg.mFilePath, cfg.mSuffix);
+    } else if (cfg.mSuffixType == LogCfg::SfxType::SFXTYPE_PROP) {
+        fsaver = new PropertiedFileSaver(cfg.mFilePath);
+    } else if (cfg.mSuffixType == LogCfg::SfxType::SFXTYPE_DATE) {
+        fsaver = new DatedFileSaver(cfg.mFilePath);
+    } else { /* Never run here */ }
+    return fsaver;
+}
+
+Logger *LogSaverPriv::createLogger(LogCfg cfg) {
+    Logger * logger = NULL;
+    switch ((int)cfg.mLogType) {
+    case LogCfg::LogType::LOGTYPE_KMSG:
+        logger = new KLogger();
+        break;
+    case LogCfg::LogType::LOGTYPE_ALOG:
+        //logger = new ALogger();
+        break;
+    case LogCfg::LogType::LOGTYPE_UEVT:
+        logger = new ULogger();
+        break;
+    default:
+        break; /* Never run here */
+    }
+    return logger;
+}
 
 int LogSaverPriv::run(LogCfg cfg) {
+    L("LogSaver start.");
     cfg.show();
 
     // Determine the file saver.
-    if (cfg.mFilePath.empty()) {
-        mFSaver = new StdoutSaver();
-    } else if (cfg.mSuffixType == LogCfg::SfxType::SFXTYPE_NONE) {
-        mFSaver = new SimpleFileSaver(cfg.mFilePath);
-    } else if (cfg.mSuffixType == LogCfg::SfxType::SFXTYPE_INDEX) {
-        mFSaver = new IndexedFileSaver(cfg.mFilePath, cfg.mSuffix);
-    } else if (cfg.mSuffixType == LogCfg::SfxType::SFXTYPE_PROP) {
-        mFSaver = new PropertiedFileSaver(cfg.mFilePath);
-    } else if (cfg.mSuffixType == LogCfg::SfxType::SFXTYPE_DATE) {
-        mFSaver = new DatedFileSaver(cfg.mFilePath);
-    } else { /* Never run here */ }
+    mFSaver = createFileSaver(cfg);
 
     // Determine the logger.
-    switch ((int)cfg.mLogType) {
-    case LogCfg::LogType::LOGTYPE_KMSG:
-        mLogger = new KLogger();
-        break;
-    case LogCfg::LogType::LOGTYPE_ALOG:
-        //mLogger = new ALogger();
-        break;
-    case LogCfg::LogType::LOGTYPE_UEVT:
-        //mLogger = new ULogger();
-        break;
-    }
+    mLogger = createLogger(cfg);
 
     // Link the logger with the saver.
     mLogger->setFileSaver(mFSaver);
@@ -102,15 +122,26 @@ int LogSaverPriv::run(LogCfg cfg) {
     }
 
     // Go get the logs.
-    LSLOG("LogSaver start.");
-    int err = mLogger->go();
-    LSLOG("LogSaver exit.");
+    int err = 0;
+    err = mFSaver->prepare();
+    if (err) {
+        L("FileSaver prepare() failed. err=%d", err);
+    } else {
+        L("FileSaver prepared.");
+        
+        err = mLogger->go();
+        L("Logger stopped.");
+        
+        mFSaver->finish();
+        L("FileSaver finished.");
+    }
 
     // Stop timer if started.
     if (cfg.mTimeout > 0) {
         unset_oneshot_timer();
     }
 
+    L("LogSaver exit. err=%d", err);
     return err;
 }
 
@@ -122,4 +153,3 @@ LogSaver::LogSaver() : priv(new LogSaverPriv()) {}
 int LogSaver::run(LogCfg cfg) {
     return priv->run(cfg);
 }
-

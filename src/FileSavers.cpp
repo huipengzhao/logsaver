@@ -34,7 +34,7 @@ SimpleFileSaver::SimpleFileSaver(string filePath)
 int SimpleFileSaver::prepare() {
     mFile = fopen(mFilePath.c_str(), "w+");
     if (!mFile) { // open failed.
-        LSLOG("Open file %s failed. Error: %s", mFilePath.c_str(), strerror(errno));
+        L("Open file %s failed. Error: %s", mFilePath.c_str(), strerror(errno));
         return -errno;
     }
     return 0;
@@ -76,7 +76,7 @@ FILE *SuffixedFileSaverBase::openNextFile() {
     string fpath = mFilePathBase + "_" + sfx;
     FILE *fp = fopen(fpath.c_str(), "w+");
     if (!fp) { // open failed.
-        LSLOG("Open file %s failed. Error: %s", fpath.c_str(), strerror(errno));
+        L("Open file %s failed. Error: %s", fpath.c_str(), strerror(errno));
     }
     return fp;
 }
@@ -91,7 +91,7 @@ string IndexedFileSaver::getNextSuffix() {
     // Now open the index file.
     FILE *fp = fopen(mIndexPath.c_str(), "r+");
     if (!fp) {
-        LSLOG("Open index file %s failed. Error: %s", mIndexPath.c_str(), strerror(errno));
+        L("Open index file %s failed. Error: %s", mIndexPath.c_str(), strerror(errno));
         return "badsfx";
     }
 
@@ -99,7 +99,7 @@ string IndexedFileSaver::getNextSuffix() {
     int n = 0;
     char buf[8] = {0};
     if ((n = fread(buf, 1, 7, fp)) < 0) {
-        LSLOG("Read from file %s failed. Error: %s", mIndexPath.c_str(), strerror(errno));
+        L("Read from file %s failed. Error: %s", mIndexPath.c_str(), strerror(errno));
         fclose(fp);
         return "badsfx";
     }

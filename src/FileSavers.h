@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "LogSaver.h"
+#include "LogSaverBase.h"
 
 using namespace std;
 using namespace logsaver;

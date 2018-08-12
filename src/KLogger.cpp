@@ -23,41 +23,54 @@ namespace logsaver {
 #define SYSLOG_ACTION_CONSOLE_LEVEL 8
 #define SYSLOG_ACTION_SIZE_BUFFER   10
 
-// Signal handlers for child thread
-static void klog_sighandler(int sig) {
-    if (sig==SIGUSR1) {
-        LSLOG("Exit the child thread.");
-        pthread_exit(NULL);
-    }
-}
-
-// Child thread main entry, child thread does the klogctrl.
-static void *klog_thread(void *data) {
-    KLogger *klogger = (KLogger *)data;
-    if (klogger == NULL) { return (void*)(-EINVAL); }
-    long ret = klogger->kLogThread();
-    return (void*)ret;
-}
-
 class KLoggerPriv {
 public:
-    pthread_t thrd;
-    int       bufsize;
-    char *    buf;
+    KLoggerPriv(KLogger *logger);
+
+    KLogger * mLogger;
+    pthread_t mThrd;
+    int       mBufsize;
+    char *    mBuf;
+
+    int doLogging();
+    int kGetRingBufSize();
+    int kRead(char *buf, int len);
+    int kReadAll(char *buf, int len);
 };
 
 } //namespace logsaver
 
-KLogger::KLogger() : Logger(), mPriv(new KLoggerPriv()) {}
+// Signal handler for child thread.
+static void klog_sighandler(int sig) {
+    if (sig==SIGUSR1) {
+        L("Exit the child thread.");
+        pthread_exit(NULL);
+    }
+}
 
-// override
-KLogger::~KLogger() { delete mPriv; }
+// Register the signal handler.
+static void klog_register_sighandler() {
+    struct sigaction action;
+    action.sa_flags = 0;
+    action.sa_handler = klog_sighandler;
+    sigaction(SIGUSR1, &action, NULL);
+}
 
-int KLogger::kGetRingBufSize() {
+// Child thread main entry, child thread does the klogctrl.
+static void *klog_thread(void *data) {
+    KLoggerPriv *priv = (KLoggerPriv *)data;
+    if (priv == NULL) { return (void*)(-EINVAL); }
+    long ret = priv->doLogging();
+    return (void*)ret;
+}
+
+int KLoggerPriv::kGetRingBufSize() {
     return klogctl(SYSLOG_ACTION_SIZE_BUFFER, NULL, 0);
 }
 
-int KLogger::kRead(char *buf, int len) {
+KLoggerPriv::KLoggerPriv(KLogger *logger) : mLogger(logger) {}
+
+int KLoggerPriv::kRead(char *buf, int len) {
     /*
      * NOTE: SYSLOG_ACTION_READ needs CAP_SYSLOG capability.
      * Several ways to overcome this:
@@ -70,43 +83,44 @@ int KLogger::kRead(char *buf, int len) {
     return klogctl(SYSLOG_ACTION_READ, buf, (long) len);
 }
 
-int KLogger::kReadAll(char *buf, int len) {
+int KLoggerPriv::kReadAll(char *buf, int len) {
     return klogctl(SYSLOG_ACTION_READ_ALL, buf, (long) len);
 }
 
-int KLogger::kLogThread() {
-    LSLOG("start");
-    int bufsize = mPriv->bufsize;
-    char *buf = mPriv->buf;
+int KLoggerPriv::doLogging() {
+    L("start");
 
-    struct sigaction action;
-    action.sa_flags = 0;
-    action.sa_handler = klog_sighandler;
-    sigaction(SIGUSR1, &action, NULL);
+    klog_register_sighandler();
 
-    int n = kReadAll(buf, bufsize);
+    int n = kReadAll(mBuf, mBufsize);
     while(n > 0) {
-        if (mSaver) {
-            mSaver->save(buf, n);
+        if (mLogger->getFileSaver()) {
+            mLogger->getFileSaver()->save(mBuf, n);
         }
-        n = kRead(buf, bufsize);
+        n = kRead(mBuf, mBufsize);
         if (n < 0) {
-            LSLOG("kRead() returns %d: %s", n, strerror(errno));
+            L("kRead() returns %d: %s", n, strerror(errno));
         }
     }
-    LSLOG("exit");
+    L("exit");
     return (n < 0 ? n : 0);
 }
 
+KLogger::KLogger() : Logger(), mPriv(new KLoggerPriv(this)) {}
+
+// override
+KLogger::~KLogger() { delete mPriv; }
+
 // override
 int KLogger::go() {
-    LSLOG("start");
-    mPriv->bufsize = kGetRingBufSize();
-    mPriv->buf = (char*)malloc(mPriv->bufsize);
+    L("start");
+    mPriv->mBufsize = mPriv->kGetRingBufSize();
+    mPriv->mBuf = (char*)malloc(mPriv->mBufsize);
 
     // Init the saver before anything.
-    if (mSaver) {
-        mSaver->prepare();
+    if (!getFileSaver()) {
+        // Cry out if no saver.
+        L("Warning! KLogger is started without any file saver.");
     }
 
     /*
@@ -116,28 +130,23 @@ int KLogger::go() {
         Here we put it in a child thread, and stop it by raising a SIGUSR1
         signal and exiting the child thread in the signal handler.
     */
-    int err = pthread_create(&mPriv->thrd, NULL, klog_thread, this);
+    int err = pthread_create(&mPriv->mThrd, NULL, klog_thread, mPriv);
     if (err) return err;
 
     // Wait for the child thread.
-    long ret = NULL;
-    pthread_join(mPriv->thrd, (void**)&ret);
-    LSLOG("child thread exit with return value %d", (int)ret);
-
-    // Finish the saver.
-    if (mSaver) {
-        mSaver->finish();
-    }
+    long ret = 0;
+    pthread_join(mPriv->mThrd, (void**)&ret);
+    L("child thread exit with return value %d", (int)ret);
 
     // Release the resource.
-    if (mPriv->buf) free(mPriv->buf);
+    if (mPriv->mBuf) free(mPriv->mBuf);
 
-    LSLOG("exit");
+    L("exit");
     return (int)ret;
 }
 
 // override
 void KLogger::stop() {
-    LSLOG("Stop the child thread.");
-    pthread_kill(mPriv->thrd, SIGUSR1);
+    L("Stop the child thread.");
+    pthread_kill(mPriv->mThrd, SIGUSR1);
 }

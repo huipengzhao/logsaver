@@ -12,26 +12,26 @@
 
 #include <cutils/klog.h>
 
-#define LSLOG_RAW(fmt, args...) \
+#define L_RAW(fmt, args...) \
     KLOG_INFO("logsaver", fmt, ##args)
 
-#define LSLOG(fmt, args...) \
-    LSLOG_RAW("%s %d: " fmt "\n", __FUNCTION__, __LINE__, ##args)
+#define L(fmt, args...) \
+    L_RAW("%s %d: " fmt "\n", __FUNCTION__, __LINE__, ##args)
 
 #else  //!ANDROID
 
-#define LSLOG_RAW(fmt, args...) \
+#define L_RAW(fmt, args...) \
     fprintf(stderr, fmt, ##args)
 
 // Here we use stderr because stdout maybe used as default saver.
-#define LSLOG(fmt, args...) \
-    LSLOG_RAW("%s %d: " fmt "\n", __FUNCTION__, __LINE__, ##args)
+#define L(fmt, args...) \
+    L_RAW("%s %d: " fmt "\n", __FUNCTION__, __LINE__, ##args)
 
 #endif //ANDROID
 #else  //!LS_DEBUG
 
-#define LSLOG_RAW(fmt, args...)
-#define LSLOG(fmt, args...)
+#define L_RAW(fmt, args...)
+#define L(fmt, args...)
 
 #endif //LS_DEBUG
 
