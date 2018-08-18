@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
         return -EINVAL;
     }
 
-    if (cfg.mLogType == LogCfg::LogType::LOGTYPE_HELP) {
+    if (cfg.mLogType == LogCfg::LOGTYPE_HELP) {
         cfg.showUsage();
         return 0;
     }

@@ -70,13 +70,13 @@ FileSaver *LogSaverPriv::createFileSaver(LogCfg cfg) {
     FileSaver * fsaver = NULL;
     if (cfg.mFilePath.empty()) {
         fsaver = new StdoutSaver();
-    } else if (cfg.mSuffixType == LogCfg::SfxType::SFXTYPE_NONE) {
+    } else if (cfg.mSuffixType == LogCfg::SFXTYPE_NONE) {
         fsaver = new SimpleFileSaver(cfg.mFilePath);
-    } else if (cfg.mSuffixType == LogCfg::SfxType::SFXTYPE_INDEX) {
+    } else if (cfg.mSuffixType == LogCfg::SFXTYPE_INDEX) {
         fsaver = new IndexedFileSaver(cfg.mFilePath, cfg.mSuffix);
-    } else if (cfg.mSuffixType == LogCfg::SfxType::SFXTYPE_PROP) {
+    } else if (cfg.mSuffixType == LogCfg::SFXTYPE_PROP) {
         fsaver = new PropertiedFileSaver(cfg.mFilePath);
-    } else if (cfg.mSuffixType == LogCfg::SfxType::SFXTYPE_DATE) {
+    } else if (cfg.mSuffixType == LogCfg::SFXTYPE_DATE) {
         fsaver = new DatedFileSaver(cfg.mFilePath);
     } else { /* Never run here */ }
     return fsaver;
@@ -85,13 +85,13 @@ FileSaver *LogSaverPriv::createFileSaver(LogCfg cfg) {
 Logger *LogSaverPriv::createLogger(LogCfg cfg) {
     Logger * logger = NULL;
     switch ((int)cfg.mLogType) {
-    case LogCfg::LogType::LOGTYPE_KMSG:
+    case LogCfg::LOGTYPE_KMSG:
         logger = new KLogger();
         break;
-    case LogCfg::LogType::LOGTYPE_ALOG:
+    case LogCfg::LOGTYPE_ALOG:
         //logger = new ALogger();
         break;
-    case LogCfg::LogType::LOGTYPE_UEVT:
+    case LogCfg::LOGTYPE_UEVT:
         logger = new ULogger();
         break;
     default:

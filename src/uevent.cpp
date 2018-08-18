@@ -26,6 +26,10 @@
 
 #include <linux/netlink.h>
 
+#ifndef SOCK_CLOEXEC
+#define SOCK_CLOEXEC 0
+#endif
+
 /**
  * Like recv(), but checks that messages actually originate from the kernel.
  */
